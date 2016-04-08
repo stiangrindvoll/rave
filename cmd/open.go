@@ -13,11 +13,8 @@ import (
 // openCmd represents the open command
 var openCmd = &cobra.Command{
 	Use:   "open",
-	Short: "Share a file or directory to your network friend",
-	Long: `With open you can make available files or directories in your network,
-
-	By using the CLI you can simply open a file to your network friend
-	provided you have the right access key.`,
+	Short: "Open a directory to recieve files in a directory from a network friend.",
+	Long:  `Open a directory to recieve files in a directory from a network friend.`,
 
 	Run: func(cmd *cobra.Command, args []string) {
 

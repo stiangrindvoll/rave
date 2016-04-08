@@ -10,9 +10,9 @@ import (
 // pushCmd represents the push command
 var pushCmd = &cobra.Command{
 	Use:   "push",
-	Short: "push a file or directory from your network friend.",
-	Long: `push will let you push down an available file or directory
-	from your network friend`,
+	Short: "push a file or directory to your friend in the network",
+	Long: `push will let you transfer a file or directory over to your friend
+	in the network`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// TODO: Work your own magic here
 		discovery.List()
