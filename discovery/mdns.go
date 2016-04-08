@@ -2,10 +2,6 @@ package discovery
 
 import (
 	"fmt"
-	"io/ioutil"
-	"log"
-	"net/http"
-	"os"
 
 	"github.com/hashicorp/mdns"
 )
@@ -27,14 +23,13 @@ func NewMdnsServer(componentName string, serviceName string) (*Mdns, error) {
 
 // Register will register the service
 func (dir *Mdns) Register() (*mdns.Server, error) {
-	host, _ := os.Hostname()
-	service, err := mdns.NewMDNSService(host,
+	service, err := mdns.NewMDNSService(dir.serviceName,
 		"_rave._tcp",
 		"",
 		"",
 		1623,
 		nil,
-		[]string{dir.serviceName, dir.componentName},
+		[]string{dir.componentName},
 	)
 	fmt.Println(service, err)
 	// Create the mDNS server, defer shutdown
@@ -45,23 +40,20 @@ func (dir *Mdns) Register() (*mdns.Server, error) {
 	return server, nil
 }
 
-// List will list all available services
-func List() {
+// GetService will list all available services
+func GetService(key string) (ip, port string) {
 	entriesCh := make(chan *mdns.ServiceEntry, 4)
 	go func() {
 		for entry := range entriesCh {
 			fmt.Printf("Got new entry:\n\tName: %v\n\tHost: %v\n\tIp: %v\n\tPort: %v\n\tInfo: %v\n", entry.Name, entry.Host, entry.AddrV4, entry.Port, entry.InfoFields)
-
-			res, err := http.Get(fmt.Sprintf("http://%v:%v/index.html", entry.AddrV4, entry.Port))
-			if err != nil {
-				log.Fatal(err)
+			for _, k := range entry.InfoFields {
+				fmt.Println(fmt.Sprintf("compare:\"%v %v\"", k, key))
+				if k == key {
+					ip = fmt.Sprintf("%s", entry.AddrV4)
+					port = fmt.Sprintf("%v", entry.Port)
+					return
+				}
 			}
-			robots, err := ioutil.ReadAll(res.Body)
-			res.Body.Close()
-			if err != nil {
-				log.Fatal(err)
-			}
-			fmt.Printf("%s", robots)
 
 		}
 	}()
@@ -69,4 +61,6 @@ func List() {
 	// Start the lookup
 	mdns.Lookup("_rave._tcp", entriesCh)
 	close(entriesCh)
+
+	return
 }

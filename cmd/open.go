@@ -18,7 +18,7 @@ var openCmd = &cobra.Command{
 
 	Run: func(cmd *cobra.Command, args []string) {
 
-		disc, err := discovery.New("mDNS", "Rave Client", "Rave File Sharing")
+		disc, err := discovery.New("mDNS", key, "Rave File Sharing")
 		if err != nil {
 			panic(err)
 		}

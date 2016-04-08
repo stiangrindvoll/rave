@@ -3,6 +3,12 @@
 package cmd
 
 import (
+	"fmt"
+	"io/ioutil"
+	"log"
+	"net/http"
+	"os"
+
 	"github.com/spf13/cobra"
 	"github.com/stiangrindvoll/rave/discovery"
 )
@@ -15,7 +21,22 @@ var pushCmd = &cobra.Command{
 	in the network`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// TODO: Work your own magic here
-		discovery.List()
+
+		ip, port := discovery.GetService(key)
+		if ip == "" || port == "" {
+			fmt.Println("No Rave found")
+			os.Exit(1)
+		}
+		res, err := http.Get(fmt.Sprintf("http://%v:%v/index.html", ip, port))
+		if err != nil {
+			log.Fatal(err)
+		}
+		robots, err := ioutil.ReadAll(res.Body)
+		res.Body.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Printf("%s", robots)
 
 	},
 }
