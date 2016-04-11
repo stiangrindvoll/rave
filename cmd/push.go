@@ -3,11 +3,13 @@
 package cmd
 
 import (
+	"archive/tar"
 	"fmt"
-	"io/ioutil"
-	"log"
-	"net/http"
+	"io"
+	"net"
 	"os"
+	"path/filepath"
+	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/stiangrindvoll/rave/discovery"
@@ -24,19 +26,66 @@ var pushCmd = &cobra.Command{
 
 		ip, port := discovery.GetService(key)
 		if ip == "" || port == "" {
-			fmt.Println("No Rave found")
+			fmt.Fprintln(os.Stderr, "No Rave found")
 			os.Exit(1)
 		}
-		res, err := http.Get(fmt.Sprintf("http://%v:%v/index.html", ip, port))
-		if err != nil {
-			log.Fatal(err)
+
+		if len(args) < 0 {
+			fmt.Fprintln(os.Stderr, "Please select a file/directory you want to send")
+			os.Exit(1)
 		}
-		robots, err := ioutil.ReadAll(res.Body)
-		res.Body.Close()
+		conn, err := net.Dial("tcp", ip+":"+port)
 		if err != nil {
-			log.Fatal(err)
+			fmt.Fprintln(os.Stderr, "Unable to open tcp connection")
+			os.Exit(1)
 		}
-		fmt.Printf("%s", robots)
+		defer conn.Close()
+		tarWriter := tar.NewWriter(conn)
+		defer tarWriter.Close()
+
+		for _, f := range args {
+			info, err := os.Stat(f)
+			if err != nil {
+				os.Exit(1)
+			}
+			var baseDir string
+			if info.IsDir() {
+				baseDir = filepath.Base(f)
+			}
+
+			filepath.Walk(f,
+				func(path string, info os.FileInfo, err error) error {
+					if err != nil {
+						return err
+					}
+
+					header, err := tar.FileInfoHeader(info, info.Name())
+					if err != nil {
+						return err
+					}
+
+					if baseDir != "" {
+						header.Name = filepath.Join(baseDir, strings.TrimPrefix(path, f))
+					}
+
+					if err = tarWriter.WriteHeader(header); err != nil {
+						return err
+					}
+
+					if info.IsDir() {
+						return nil
+					}
+
+					file, err := os.Open(path)
+					if err != nil {
+						return err
+					}
+					defer file.Close()
+					_, err = io.Copy(tarWriter, file)
+					return err
+
+				})
+		}
 
 	},
 }
