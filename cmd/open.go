@@ -22,12 +22,12 @@ var openCmd = &cobra.Command{
 		if err != nil {
 			panic(err)
 		}
-		s, err := disc.Register()
-		defer s.Shutdown()
-
+		err = disc.Register()
 		if err != nil {
 			panic(err)
 		}
+		defer disc.Close()
+
 		log.Fatal(http.ListenAndServe(":1623", http.FileServer(http.Dir("./"))))
 	},
 }

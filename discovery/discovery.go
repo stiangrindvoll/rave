@@ -1,14 +1,11 @@
 package discovery
 
-import (
-	"errors"
-
-	"github.com/hashicorp/mdns"
-)
+import "errors"
 
 // Discover will register
 type Discover interface {
-	Register() (*mdns.Server, error)
+	Register() error
+	Close() error
 }
 
 // New will new

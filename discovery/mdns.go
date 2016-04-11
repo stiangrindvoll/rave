@@ -8,6 +8,7 @@ import (
 
 // Mdns for data
 type Mdns struct {
+	server        *mdns.Server
 	componentName string
 	serviceName   string
 }
@@ -15,6 +16,7 @@ type Mdns struct {
 // NewMdnsServer creates a new mDNS server
 func NewMdnsServer(componentName string, serviceName string) (*Mdns, error) {
 	return &Mdns{
+		server:        nil,
 		componentName: componentName,
 		serviceName:   serviceName,
 	}, nil
@@ -22,7 +24,7 @@ func NewMdnsServer(componentName string, serviceName string) (*Mdns, error) {
 }
 
 // Register will register the service
-func (dir *Mdns) Register() (*mdns.Server, error) {
+func (dir *Mdns) Register() error {
 	service, err := mdns.NewMDNSService(dir.serviceName,
 		"_rave._tcp",
 		"",
@@ -33,11 +35,16 @@ func (dir *Mdns) Register() (*mdns.Server, error) {
 	)
 	fmt.Println(service, err)
 	// Create the mDNS server, defer shutdown
-	server, err := mdns.NewServer(&mdns.Config{Zone: service})
+	dir.server, err = mdns.NewServer(&mdns.Config{Zone: service})
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return server, nil
+	return nil
+}
+
+// Close will shutdown the registered server
+func (dir *Mdns) Close() error {
+	return dir.server.Shutdown()
 }
 
 // GetService will list all available services
