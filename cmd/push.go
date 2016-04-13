@@ -3,13 +3,9 @@
 package cmd
 
 import (
-	"archive/tar"
 	"fmt"
-	"io"
 	"net"
 	"os"
-	"path/filepath"
-	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/stiangrindvoll/rave/discovery"
@@ -32,59 +28,21 @@ var pushCmd = &cobra.Command{
 
 		if len(args) < 0 {
 			fmt.Fprintln(os.Stderr, "Please select a file/directory you want to send")
+			cmd.Usage()
 			os.Exit(1)
 		}
+
 		conn, err := net.Dial("tcp", ip+":"+port)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "Unable to open tcp connection")
 			os.Exit(1)
 		}
 		defer conn.Close()
-		tarWriter := tar.NewWriter(conn)
-		defer tarWriter.Close()
 
-		for _, f := range args {
-			info, err := os.Stat(f)
-			if err != nil {
-				os.Exit(1)
-			}
-			var baseDir string
-			if info.IsDir() {
-				baseDir = filepath.Base(f)
-			}
-
-			filepath.Walk(f,
-				func(path string, info os.FileInfo, err error) error {
-					if err != nil {
-						return err
-					}
-
-					header, err := tar.FileInfoHeader(info, info.Name())
-					if err != nil {
-						return err
-					}
-
-					if baseDir != "" {
-						header.Name = filepath.Join(baseDir, strings.TrimPrefix(path, f))
-					}
-
-					if err = tarWriter.WriteHeader(header); err != nil {
-						return err
-					}
-
-					if info.IsDir() {
-						return nil
-					}
-
-					file, err := os.Open(path)
-					if err != nil {
-						return err
-					}
-					defer file.Close()
-					_, err = io.Copy(tarWriter, file)
-					return err
-
-				})
+		err = pushFiles(args, conn)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
 		}
 
 	},

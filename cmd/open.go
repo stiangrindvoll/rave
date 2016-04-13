@@ -3,12 +3,16 @@
 package cmd
 
 import (
-	"log"
-	"net/http"
+	"fmt"
+	"net"
+	"os"
+	"path/filepath"
 
 	"github.com/spf13/cobra"
 	"github.com/stiangrindvoll/rave/discovery"
 )
+
+var path string
 
 // openCmd represents the open command
 var openCmd = &cobra.Command{
@@ -20,21 +24,50 @@ var openCmd = &cobra.Command{
 
 		disc, err := discovery.New("mDNS", key, "Rave File Sharing")
 		if err != nil {
-			panic(err)
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
 		}
 		err = disc.Register()
 		if err != nil {
-			panic(err)
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
 		}
 		defer disc.Close()
 
-		log.Fatal(http.ListenAndServe(":1623", http.FileServer(http.Dir("./"))))
+		l, err := net.Listen("tcp", ":1623")
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+		defer l.Close()
+
+		// Wait for a connection.
+		conn, err := l.Accept()
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+		defer conn.Close()
+
+		workdir, err := filepath.Abs(path)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+
+		err = writeFiles(conn, workdir)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+
 	},
 }
 
 func init() {
 	RootCmd.AddCommand(openCmd)
 
+	openCmd.PersistentFlags().StringVarP(&path, "path", "p", filepath.Dir(os.Args[0]), "Path to where files should be saved")
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
