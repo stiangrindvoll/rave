@@ -1,0 +1,16 @@
+language: go
+sudo: false
+os:
+- linux
+- osx
+go:
+- 1.6.1
+
+deploy:
+  provider: releases
+  api_key:
+    secure: KC3mo0N7Ud9JLikoE3rreB+V3gUSSVwbS0zEgbcXVHPkYS4WlGQDRsY+WlTlIomePOgQFnYxOkTYOEzfPwnJ231SxcjnfwKG7Wile6fpGsPWtYhCwBCbWKPMtj+6h+zO5Vy/j9KAq/zyIe8zPLNQYUTHIiveZg2exEtljGZMIh2rl/Y98ww1DxB3yJxvuJ/oIzwhTCX6nFlhfdHh9u1ridZIb0g8R33mCqnOzYQznb9m5asK3OXFUvu22zD2twhIYSIWTOCYj4GgIXm8JI8A4CRxLXCz72TLVHGw/V4n4DHugc1hnuliK/a+rHXgFR5gJCJHi7uJ3WJBkeCUyJY5yDWkd7ZLmq/1VME91+kHSLK133ZtEICL6JgzEsThO0nZUh/a2WwbTcw0b5TxYVLYvz28cZu4gean1E7Z2O4Ytfzb5VoMloiMc9M1r/revBPVZZb0uPiXFd6fM4KoM04TaTIbjAvZyUqdh4FDWTyzOoPthGyw6dEG7RmZ7FIsdfpmL9miXdijLibuFp79a2bi4nxJfSwMz3D+WrKA1y4k1DZUFBfSWjMx3DxZYqRzu4u767eVeZ7l6ibyBYusm+C8OLWUya1cY2fxCtXsBocoN+XmHrKaYMyCma8yAQfyfqWerKpxQaB4+yAPN4M//UaCe+kA1hpzgp1ZR2xcfsCQoV8=
+  file: rave
+  skip_cleanup: true
+  on:
+    tags: true
