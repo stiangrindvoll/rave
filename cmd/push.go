@@ -20,7 +20,10 @@ var pushCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		// TODO: Work your own magic here
 
-		ip, port := discovery.GetService(key)
+		h := discovery.GetService(key)
+		fmt.Println("LEN of Hosts:", len(h))
+		ip := h[0].IP
+		port := h[0].Port
 		if ip == "" || port == "" {
 			fmt.Fprintln(os.Stderr, "No Rave found")
 			os.Exit(1)
