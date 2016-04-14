@@ -1,0 +1,5 @@
+package: github.com/stiangrindvoll/rave
+import:
+- package: github.com/hashicorp/mdns
+- package: github.com/spf13/cobra
+- package: github.com/spf13/viper
