@@ -12,7 +12,7 @@ import (
 	"github.com/stiangrindvoll/rave/discovery"
 )
 
-var path string
+var workpath string
 
 // openCmd represents the open command
 var openCmd = &cobra.Command{
@@ -49,7 +49,7 @@ var openCmd = &cobra.Command{
 		}
 		defer conn.Close()
 
-		workdir, err := filepath.Abs(path)
+		workdir, err := filepath.Abs(workpath)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
@@ -67,7 +67,7 @@ var openCmd = &cobra.Command{
 func init() {
 	RootCmd.AddCommand(openCmd)
 
-	openCmd.PersistentFlags().StringVarP(&path, "path", "p", filepath.Dir(os.Args[0]), "Path to where files should be saved")
+	openCmd.PersistentFlags().StringVarP(&workpath, "path", "p", filepath.Dir(os.Args[0]), "Path to where files should be saved")
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
