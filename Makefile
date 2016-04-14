@@ -2,9 +2,10 @@ all: tools deps build lint
 
 tools:
 	go get -u github.com/golang/lint/golint
+	go get -u github.com/Masterminds/glide
 
 deps:
-	go get -u github.com/spf13/cobra
+	glide install
 
 build:
 	go build
