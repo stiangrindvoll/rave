@@ -3,6 +3,7 @@ package discovery
 import (
 	"fmt"
 	"net"
+	"strings"
 
 	"github.com/hashicorp/mdns"
 )
@@ -32,13 +33,30 @@ func NewMdnsServer(componentName string, serviceName string) (*Mdns, error) {
 // Register will register the service
 func (dir *Mdns) Register() error {
 	var IP []net.IP
-	addrs, err := net.InterfaceAddrs()
+	var addrs []net.Addr
+	ifi, err := net.Interfaces()
 	if err != nil {
-		return nil
+		return err
 	}
+	for _, ni := range ifi {
+		if !strings.HasPrefix(ni.Name, "docker") {
+			ad, _ := ni.Addrs()
+			for _, a := range ad {
+				addrs = append(addrs, a)
+			}
+
+		}
+	}
+	/*
+		addrs, err := net.InterfaceAddrs()
+		if err != nil {
+			return err
+		}
+	*/
+
 	for _, address := range addrs {
 		// check the address type and if it is not a loopback the display it
-		if ipnet, ok := address.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
+		if ipnet, ok := address.(*net.IPNet); ok && !ipnet.IP.IsLoopback() && !ipnet.IP.IsLinkLocalUnicast() {
 			if ipnet.IP.To4() != nil {
 				IP = append(IP, ipnet.IP)
 			}
